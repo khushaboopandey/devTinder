@@ -2,6 +2,8 @@ const express = require('express')
 const bcrypt = require('bcrypt');
 const connectDb = require('./config/database')
 const User = require('./models/user');
+const { validateSignUpData } = require('./utils/validation');
+
 const app = express();
 
 app.use(express.json());
@@ -9,7 +11,7 @@ app.use(express.json());
 app.post("/signup", async (req, res) => {
 
     try {
-        // validateSignUpData(req);
+        validateSignUpData(req);
         const { firstName, lastName, emailId, password, number } = req.body;
         // encrypt the password
         const passwordHash = await bcrypt.hash(password, 10);
@@ -31,7 +33,6 @@ app.post("/login", async (req, res) => {
             throw new Error("Email Id not present in db");
         }
         const isPasswordValid = await bcrypt.compare(password, user.password)
-        console.log(user);
         if (isPasswordValid) {
             res.send("Login SuccessFull!!!");
         } else {
