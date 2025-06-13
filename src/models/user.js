@@ -16,14 +16,19 @@ const userSchema = new mongoose.Schema({
         unique: true,
         trim: true,
         validate(value) {
-            if (!validator.isEmail) {
+            if (!validator.isEmail(value)) {
                 throw new Error("Invalid Email Address" + value);
             }
         }
     },
     password: {
         type: String,
-        required: true
+        required: true,
+        validate(value) {
+            if (!validator.isStrongPassword(value)) {
+                throw new Error("Your password is not Strong" + value);
+            }
+        }
     },
     age: {
         type: Number,
