@@ -7,7 +7,8 @@ var jwt = require('jsonwebtoken');
 const { validateSignUpData } = require('./utils/validation');
 
 const app = express();
-
+// Enable cookie parser middleware
+app.use(cookieParser()); // middleware
 app.use(express.json());
 
 app.post("/signup", async (req, res) => {
@@ -38,7 +39,6 @@ app.post("/login", async (req, res) => {
         if (isPasswordValid) {
             // Create a JWT Token
             const token = await jwt.sign({ _id: user._id }, "DEV@Tinder$789");
-            console.log("token", token);
             res.cookie("token", token);
             res.send("Login SuccessFull!!!");
         } else {
@@ -48,6 +48,36 @@ app.post("/login", async (req, res) => {
         res.status(400).send("Something went wrong", err.message);
     }
 })
+
+// profile Api
+app.get("/profile", async (req, res) => {
+    try {
+        const { token } = req.cookies;
+
+        if (!token) {
+            throw new Error("Invalid Token");
+        }
+
+        let decodeMessage;
+        try {
+            decodeMessage = jwt.verify(token, "DEV@Tinder$789");
+        } catch (err) {
+            throw new Error("Invalid or expired token");
+        }
+
+        const { _id } = decodeMessage;
+
+        const loggedInUser = await User.findById(_id);
+        if (!loggedInUser) {
+            throw new Error("User does not exist");
+        }
+        res.send(loggedInUser);
+    } catch (err) {
+        console.error("Caught error:", err);
+        res.status(400).send(err.message || "Something went wrong");
+    }
+});
+
 
 // get user by email
 app.post("/user", async (req, res) => {
