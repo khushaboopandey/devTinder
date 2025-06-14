@@ -4,6 +4,7 @@ const connectDb = require('./config/database')
 const User = require('./models/user');
 var cookieParser = require('cookie-parser')
 var jwt = require('jsonwebtoken');
+const { userAuth } = require("./middlewares/auth")
 const { validateSignUpData } = require('./utils/validation');
 
 const app = express();
@@ -50,28 +51,13 @@ app.post("/login", async (req, res) => {
 })
 
 // profile Api
-app.get("/profile", async (req, res) => {
+app.get("/profile", userAuth, async (req, res) => {
     try {
-        const { token } = req.cookies;
-
-        if (!token) {
-            throw new Error("Invalid Token");
-        }
-
-        let decodeMessage;
-        try {
-            decodeMessage = jwt.verify(token, "DEV@Tinder$789");
-        } catch (err) {
-            throw new Error("Invalid or expired token");
-        }
-
-        const { _id } = decodeMessage;
-
-        const loggedInUser = await User.findById(_id);
-        if (!loggedInUser) {
+        const user = req.user;
+        if (!user) {
             throw new Error("User does not exist");
         }
-        res.send(loggedInUser);
+        res.send(user);
     } catch (err) {
         console.error("Caught error:", err);
         res.status(400).send(err.message || "Something went wrong");
