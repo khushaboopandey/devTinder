@@ -3,7 +3,6 @@ const bcrypt = require('bcrypt');
 const connectDb = require('./config/database')
 const User = require('./models/user');
 var cookieParser = require('cookie-parser')
-var jwt = require('jsonwebtoken');
 const { userAuth } = require("./middlewares/auth")
 const { validateSignUpData } = require('./utils/validation');
 
@@ -33,13 +32,14 @@ app.post("/login", async (req, res) => {
     try {
         const { emailId, password } = req.body;
         const user = await User.findOne({ emailId: emailId })
+        // console.log("user" + user)
         if (!user) {
             throw new Error("Email Id not present in db");
         }
-        const isPasswordValid = await bcrypt.compare(password, user.password)
+        const isPasswordValid = await user.passwordValidate(password)
         if (isPasswordValid) {
+            const token = await user.getJWT();
             // Create a JWT Token
-            const token = await jwt.sign({ _id: user._id }, "DEV@Tinder$789", { expiresIn: "7d" });
             res.cookie("token", token, { expires: new Date(Date.now() + 8 * 3600000) });
             res.send("Login SuccessFull!!!");
         } else {
