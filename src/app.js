@@ -16,16 +16,6 @@ app.use("/", profileRouter)
 app.use("/", requestRouter)
 
 
-
-
-
-
-
-
-
-
-
-
 connectDb().then(() => {
     console.log("Database connected successfully...")
     app.listen(3000, () => {
